@@ -1,0 +1,20 @@
+===== IDS Analysis Report (2025-12-07_12-52-03) =====
+
+[1] Checking for SYN scan attempts (10-second capture)...
+OK: No evidence of SYN scan (only 0 SYN packets in 10 seconds).
+
+[2] Checking for suspicious HTTP POST requests (10-second capture)...
+OK: HTTP POST activity within normal range (0 in 10 seconds).
+
+[3] Running visual integrity check (baseline vs current)...
+2025-12-07_12-52-35 : MATCH - No visual changes detected.
+
+[4] Checking for possible SSH brute-force attempts...
+OK: SSH login failures within normal range (0 in last 100 lines).
+
+===== Summary =====
+SYN packets in 10s: 0 (threshold: 20)
+HTTP POST in 10s : 0 (threshold: 5)
+SSH failures (last 100 lines) : 0 (threshold: 5)
+Visual check      : 2025-12-07_12-52-35 : MATCH - No visual changes detected.
+

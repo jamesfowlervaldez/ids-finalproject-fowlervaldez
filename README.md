@@ -1,1 +1,233 @@
-# ids-finalproject-fowlervaldez
+# Host-Based Intrusion Detection System (IDS)
+
+### James Mason Fowler-Valdez  
+### CIS 3370 – Intrusion Detection Systems  
+### Instructor: Dr. Gonzalo D. Parra
+### Final Project – Fall 2025
+### Due date: December 11th
+
+---
+
+## Overview
+This project implements a lightweight **host-based Intrusion Detection System (IDS)** written entirely in Bash. 
+The goal was to design a simple, modular IDS capable of detecting several categories of suspicious activity using a combination of:
+
+- **Network monitoring** (using `tshark`)
+- **Host log analysis** (via `/var/log/auth.log`)
+- **Visual integrity monitoring** (baseline vs. current screenshots)
+- **Configurable thresholds** (via an external configuration file)
+- **Timestamped reporting and logging**
+
+Even though this system is not intended for production security environments, it demonstrates the core concepts behind IDS development and shows how host-based indicators can be combined into a unified detection workflow.
+
+---
+
+## Detection Components
+
+### **1. Visual Integrity Monitoring**
+Two scripts support screenshot-based integrity checking:
+
+- `baseline_capture.sh` 
+  Captures and stores a “known good” screenshot of the user’s desktop.
+- `compare_screenshot.sh` 
+  Takes a new screenshot, compares its MD5 hash with the baseline, and flags unexpected changes.
+
+This helps detect unauthorized access, session hijacking, or stealthy local tampering.
+
+---
+
+### **2. SYN Scan Detection**
+The IDS uses `tshark` to look for a burst of TCP SYN packets:
+
+```
+tcp.flags.syn == 1 && tcp.flags.ack == 0
+```
+
+A large number of SYN packets in a short capture window often indicates:
+
+- Port scanning
+- Reconnaissance 
+- Enumeration tools (e.g., nmap)
+
+If the count exceeds the threshold, an alert is raised.
+
+---
+
+### **3. Suspicious HTTP POST Activity**
+Another network filter checks for excessive HTTP POST requests. 
+This can indicate:
+
+- Data exfiltration 
+- Botnet/malware command activity 
+- Large automated uploads 
+- Misconfigured applications 
+
+The threshold is fully configurable.
+
+---
+
+### **4. SSH Brute-Force Detection (Upgrade 1)**
+To incorporate host-level monitoring, the IDS inspects:
+
+```
+/var/log/auth.log
+```
+
+It examines the last 100 lines for:
+
+```
+Failed password
+```
+
+If failed SSH login attempts exceed the configured threshold, an alert is logged.
+
+This upgrade demonstrates the integration of local log sources, which is a key skill for host-based IDS work.
+
+---
+
+### **5. Configurable Thresholds (Upgrade 2)**
+All thresholds and capture durations are adjustable in:
+
+```
+ids_config.conf
+```
+
+Example:
+
+```
+CAPTURE_DURATION=10
+SYN_THRESHOLD=20
+HTTP_THRESHOLD=5
+SSH_THRESHOLD=5
+```
+
+This makes the IDS more flexible and appropriate for different environments or testing scenarios.
+
+---
+
+## Project Structure
+
+```
+/
+├── scripts/
+│   ├── baseline_capture.sh
+│   ├── compare_screenshot.sh
+│   └── packet_analyzer.sh
+│
+├── screenshots/
+│   ├── baseline/
+│   └── current/
+│
+├── logs/
+│   ├── baseline.log
+│   ├── comparison.log
+│   └── unified.log
+│
+├── reports/
+│   └── report_<timestamp>.txt
+│
+├── ids_config.conf
+└── README.md
+```
+
+---
+
+## Requirements
+
+Install required tools on Ubuntu:
+
+```
+sudo apt install scrot tshark
+```
+
+(MD5 hashing utilities come preinstalled on most Ubuntu systems.)
+
+---
+
+## How to Run the IDS
+
+### **1. Capture a Baseline Screenshot**
+
+```
+cd scripts
+./baseline_capture.sh
+```
+
+Outputs:
+- Baseline screenshot saved in `/screenshots/baseline/`
+- Log entry saved in `/logs/baseline.log`
+
+---
+
+### **2. Compare Current Screenshot to Baseline**
+
+```
+./compare_screenshot.sh
+```
+
+This generates:
+- A new screenshot in `/screenshots/current/`
+- A comparison log in `/logs/comparison.log`
+- Either `MATCH` or `ALERT` based on MD5 hashing
+
+---
+
+### **3. Run the Full IDS Analyzer**
+
+```
+./packet_analyzer.sh
+```
+
+This performs:
+
+- SYN scan detection
+- HTTP POST anomaly detection 
+- SSH brute-force detection 
+- Visual integrity verification 
+- Summary and timestamped reporting 
+
+Outputs:
+- Full report saved in `/reports/`
+- Summary line appended to `/logs/unified.log`
+
+---
+
+## Sample Output (from testing)
+
+```
+===== IDS Analysis Report (2025-12-07_11-23-35) =====
+
+[1] Checking for SYN scan attempts (10-second capture)...
+OK: No evidence of SYN scan.
+
+[2] Checking for suspicious HTTP POST requests...
+OK: HTTP POST activity within normal range.
+
+[3] Running visual integrity check...
+MATCH - No visual changes detected.
+
+[4] Checking for possible SSH brute-force attempts...
+OK: SSH login failures within normal range.
+
+===== Summary =====
+SYN packets            : 0 (threshold: 20)
+HTTP POST requests     : 0 (threshold: 5)
+SSH failures (auth.log): 0 (threshold: 5)
+Visual integrity       : MATCH
+
+[+] IDS analysis complete.
+```
+
+---
+
+## Notes & Limitations
+- Designed for academic use, not production deployment. 
+- Screenshot checking relies on the desktop environment remaining consistent. 
+- SYN and HTTP checks use short capture windows for demonstration purposes. 
+- SSH detection analyzes a small slice (last 100 lines) of auth logs. 
+
+---
+
+## Conclusion
+This project demonstrates how multiple detection layers—network traffic monitoring, log inspection, and visual integrity checks—can be combined into a functioning host-based IDS. 
+The addition of configurable thresholds and SSH brute-force detection elevates the system beyond a basic demo and shows how IDS components can be extended and tuned for different environments.

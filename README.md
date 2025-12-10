@@ -228,6 +228,14 @@ Visual integrity       : MATCH
 
 ---
 
-## Conclusion
+## Conclusion##
+This project successfully delivers a lightweight host-based Intrusion Detection System using Bash scripting and common Linux tools. Through network traffic monitoring, screenshot integrity checks, and SSH brute-force detection, the system provides multiple layers of analysis to identify suspicious activity. Building this IDS strengthened my understanding of packet inspection, log analysis, and security-focused scripting. Overall, the project meets the goals of the Final project and establishes a solid foundation for future improvements such as real-time monitoring or expanded detection capabilities.
+
+## Contribution Summary Table
+
+| Team Member                  | Story Points Completed | Contribution % |
+|------------------------------|-------------------------|----------------|
+| James Mason Fowler-Valdez    | 39 Story Points         | 100%           |
+
 This project demonstrates how multiple detection layers—network traffic monitoring, log inspection, and visual integrity checks—can be combined into a functioning host-based IDS. 
 The addition of configurable thresholds and SSH brute-force detection elevates the system beyond a basic demo and shows how IDS components can be extended and tuned for different environments.
